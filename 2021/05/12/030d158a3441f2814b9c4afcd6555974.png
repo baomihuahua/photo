@@ -1,0 +1,556 @@
+function md5(code)    local code = tostring(code)    local HexTable = {"0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F"}    local A = 0x67452301    local B = 0xefcdab89    local C = 0x98badcfe    local D = 0x10325476    local S11 = 7    local S12 = 12    local S13 = 17    local S14 = 22                 local S21 = 5       local S22 = 9       local S23 = 14       local S24 = 20       local S31 = 4       local S32 = 11       local S33 = 16       local S34 = 23       local S41 = 6       local S42 = 10       local S43 = 15       local S44 = 21       local function F(x,y,z)         return (x & y) | ((~x) & z)       end       local function G(x,y,z)         return (x & z) | (y & (~z))       end       local function H(x,y,z)         return x ~ y ~ z       end       local function I(x,y,z)         return y ~ (x | (~z))       end       local function FF(a,b,c,d,x,s,ac)         a = a + F(b,c,d) + x + ac         a = (((a & 0xffffffff) << s) | ((a & 0xffffffff) >> 32 - s)) + b         return a & 0xffffffff       end       local function GG(a,b,c,d,x,s,ac)         a = a + G(b,c,d) + x + ac         a = (((a & 0xffffffff) << s) | ((a & 0xffffffff) >> 32 - s)) + b         return a & 0xffffffff       end       local function HH(a,b,c,d,x,s,ac)         a = a + H(b,c,d) + x + ac         a = (((a & 0xffffffff) << s) | ((a & 0xffffffff) >> 32 - s)) + b         return a & 0xffffffff       end       local function II(a,b,c,d,x,s,ac)         a = a + I(b,c,d) + x + ac         a = (((a & 0xffffffff) << s) | ((a & 0xffffffff) >> 32 - s)) + b         return a & 0xffffffff       end       local function MD5StringFill(s)         local len = s:len()         local mod512 = len * 8 % 512         local fillSize = (448 - mod512) // 8         if mod512 > 448 then           fillSize = (960 - mod512) // 8         end         local rTab = {}         local byteIndex = 1         for i = 1,len do           local index = (i - 1) // 4 + 1           rTab[index] = rTab[index] or 0           rTab[index] = rTab[index] | (s:byte(i) << (byteIndex - 1) * 8)           byteIndex = byteIndex + 1           if byteIndex == 5 then             byteIndex = 1           end         end         local b0x80 = false         local tLen = #rTab         if byteIndex ~= 1 then           rTab[tLen] = rTab[tLen] | 0x80 << (byteIndex - 1) * 8           b0x80 = true         end         for i = 1,fillSize // 4 do           if not b0x80 and i == 1 then             rTab[tLen + i] = 0x80            else             rTab[tLen + i] = 0x0           end         end         local bitLen = math.floor(len * 8)         tLen = #rTab         rTab[tLen + 1] = bitLen & 0xffffffff         rTab[tLen + 2] = bitLen >> 32         return rTab       end              function getmd5(s)         local fillTab = MD5StringFill(s)         local result = {A,B,C,D}         for i = 1,#fillTab // 16 do           local a = result[1]           local b = result[2]           local c = result[3]           local d = result[4]           local offset = (i - 1) * 16 + 1           a = FF(a, b, c, d, fillTab[offset + 0], S11, 0xd76aa478)           d = FF(d, a, b, c, fillTab[offset + 1], S12, 0xe8c7b756)           c = FF(c, d, a, b, fillTab[offset + 2], S13, 0x242070db)           b = FF(b, c, d, a, fillTab[offset + 3], S14, 0xc1bdceee)           a = FF(a, b, c, d, fillTab[offset + 4], S11, 0xf57c0faf)           d = FF(d, a, b, c, fillTab[offset + 5], S12, 0x4787c62a)           c = FF(c, d, a, b, fillTab[offset + 6], S13, 0xa8304613)           b = FF(b, c, d, a, fillTab[offset + 7], S14, 0xfd469501)           a = FF(a, b, c, d, fillTab[offset + 8], S11, 0x698098d8)           d = FF(d, a, b, c, fillTab[offset + 9], S12, 0x8b44f7af)           c = FF(c, d, a, b, fillTab[offset + 10], S13, 0xffff5bb1)           b = FF(b, c, d, a, fillTab[offset + 11], S14, 0x895cd7be)           a = FF(a, b, c, d, fillTab[offset + 12], S11, 0x6b901122)           d = FF(d, a, b, c, fillTab[offset + 13], S12, 0xfd987193)           c = FF(c, d, a, b, fillTab[offset + 14], S13, 0xa679438e)           b = FF(b, c, d, a, fillTab[offset + 15], S14, 0x49b40821)           a = GG(a, b, c, d, fillTab[offset + 1], S21, 0xf61e2562)           d = GG(d, a, b, c, fillTab[offset + 6], S22, 0xc040b340)           c = GG(c, d, a, b, fillTab[offset + 11], S23, 0x265e5a51)           b = GG(b, c, d, a, fillTab[offset + 0], S24, 0xe9b6c7aa)           a = GG(a, b, c, d, fillTab[offset + 5], S21, 0xd62f105d)           d = GG(d, a, b, c, fillTab[offset + 10], S22, 0x2441453)           c = GG(c, d, a, b, fillTab[offset + 15], S23, 0xd8a1e681)           b = GG(b, c, d, a, fillTab[offset + 4], S24, 0xe7d3fbc8)           a = GG(a, b, c, d, fillTab[offset + 9], S21, 0x21e1cde6)           d = GG(d, a, b, c, fillTab[offset + 14], S22, 0xc33707d6)           c = GG(c, d, a, b, fillTab[offset + 3], S23, 0xf4d50d87)           b = GG(b, c, d, a, fillTab[offset + 8], S24, 0x455a14ed)           a = GG(a, b, c, d, fillTab[offset + 13], S21, 0xa9e3e905)           d = GG(d, a, b, c, fillTab[offset + 2], S22, 0xfcefa3f8)           c = GG(c, d, a, b, fillTab[offset + 7], S23, 0x676f02d9)           b = GG(b, c, d, a, fillTab[offset + 12], S24, 0x8d2a4c8a)           a = HH(a, b, c, d, fillTab[offset + 5], S31, 0xfffa3942)           d = HH(d, a, b, c, fillTab[offset + 8], S32, 0x8771f681)           c = HH(c, d, a, b, fillTab[offset + 11], S33, 0x6d9d6122)           b = HH(b, c, d, a, fillTab[offset + 14], S34, 0xfde5380c)           a = HH(a, b, c, d, fillTab[offset + 1], S31, 0xa4beea44)           d = HH(d, a, b, c, fillTab[offset + 4], S32, 0x4bdecfa9)           c = HH(c, d, a, b, fillTab[offset + 7], S33, 0xf6bb4b60)           b = HH(b, c, d, a, fillTab[offset + 10], S34, 0xbebfbc70)           a = HH(a, b, c, d, fillTab[offset + 13], S31, 0x289b7ec6)           d = HH(d, a, b, c, fillTab[offset + 0], S32, 0xeaa127fa)           c = HH(c, d, a, b, fillTab[offset + 3], S33, 0xd4ef3085)           b = HH(b, c, d, a, fillTab[offset + 6], S34, 0x4881d05)           a = HH(a, b, c, d, fillTab[offset + 9], S31, 0xd9d4d039)           d = HH(d, a, b, c, fillTab[offset + 12], S32, 0xe6db99e5)           c = HH(c, d, a, b, fillTab[offset + 15], S33, 0x1fa27cf8)           b = HH(b, c, d, a, fillTab[offset + 2], S34, 0xc4ac5665)           a = II(a, b, c, d, fillTab[offset + 0], S41, 0xf4292244)           d = II(d, a, b, c, fillTab[offset + 7], S42, 0x432aff97)           c = II(c, d, a, b, fillTab[offset + 14], S43, 0xab9423a7)           b = II(b, c, d, a, fillTab[offset + 5], S44, 0xfc93a039)           a = II(a, b, c, d, fillTab[offset + 12], S41, 0x655b59c3)           d = II(d, a, b, c, fillTab[offset + 3], S42, 0x8f0ccc92)           c = II(c, d, a, b, fillTab[offset + 10], S43, 0xffeff47d)           b = II(b, c, d, a, fillTab[offset + 1], S44, 0x85845dd1)           a = II(a, b, c, d, fillTab[offset + 8], S41, 0x6fa87e4f)           d = II(d, a, b, c, fillTab[offset + 15], S42, 0xfe2ce6e0)           c = II(c, d, a, b, fillTab[offset + 6], S43, 0xa3014314)           b = II(b, c, d, a, fillTab[offset + 13], S44, 0x4e0811a1)           a = II(a, b, c, d, fillTab[offset + 4], S41, 0xf7537e82)           d = II(d, a, b, c, fillTab[offset + 11], S42, 0xbd3af235)           c = II(c, d, a, b, fillTab[offset + 2], S43, 0x2ad7d2bb)           b = II(b, c, d, a, fillTab[offset + 9], S44, 0xeb86d391)           result[1] = result[1] + a           result[2] = result[2] + b           result[3] = result[3] + c           result[4] = result[4] + d           result[1] = result[1] & 0xffffffff           result[2] = result[2] & 0xffffffff           result[3] = result[3] & 0xffffffff           result[4] = result[4] & 0xffffffff         end         local retStr = ''         for i = 1,4 do           for _ = 1,4 do             local temp = result[i] & 0x0F             local str = HexTable[temp + 1]             result[i] = result[i] >> 4             temp = result[i] & 0x0F             retStr = retStr .. HexTable[temp + 1] .. str             result[i] = result[i] >> 4           end         end         return string.lower(retStr)       end       return getmd5(code)     end
+
+ZZRc4 = {} 
+ZZMathBit = {} 
+function ZZMathBit.__xorBit(left, right)       return (left + right) == 1 and 1 or 0 end function ZZMathBit.__base(left, right, op)       if left < right then           left, right = right, left       end       local res = 0       local shift = 1       while left ~= 0 do           local ra = left % 2           local rb = right % 2           res = shift * op(ra,rb) + res           shift = shift * 2           left = math.modf( left / 2)           right = math.modf( right / 2)       end       return res end function ZZMathBit.xorOp(left, right)       return ZZMathBit.__base(left, right, ZZMathBit.__xorBit) end function RC4(text,key,kasi)
+if kasi==false then      str = text      str=str:gsub("[%s%p]",""):upper()       local index=1       local ret=""       for index=1,str:len(),2 do         ret=ret..string.char(tonumber(str:sub(index,index+1),16))       end       text=ret     end          local function KSA(key)           local keyLen = string.len(key)           local schedule = {}           local keyByte = {}           for i = 0, 255 do               schedule[i] = i           end              for i = 1, keyLen do               keyByte[i - 1] = string.byte(key, i, i)           end              local j = 0           for i = 0, 255 do               j = (j + schedule[i] + keyByte[ i % keyLen]) % 256               schedule[i], schedule[j] = schedule[j], schedule[i]           end           return schedule       end          local function PRGA(schedule, textLen)           local i = 0           local j = 0           local k = {}           for n = 1, textLen do               i = (i + 1) % 256               j = (j + schedule[i]) % 256               schedule[i], schedule[j] = schedule[j], schedule[i]               k[n] = schedule[(schedule[i] + schedule[j]) % 256]           end           return k       end          local function output(schedule, text)           local len = string.len(text)           local c = nil           local res = {}           for i = 1, len do               c = string.byte(text, i,i)               res[i] = string.char(ZZMathBit.xorOp(schedule[i], c))           end           return table.concat(res)       end          local textLen = string.len(text)       local schedule = KSA(key)       local k = PRGA(schedule, textLen)          str=output(k, text) if kasi==true then       str = tostring(str)       local index=1       local ret=""       for index=1,str:len() do         ret=ret..string.format("%02X",str:sub(index):byte())       end       return string.lower(ret) else     return str end end function POST(path,body)    local c=gg.makeRequest(path,nil,body).content     return c  end 
+
+---[=[上面不要乱动]=]-------------------------------------------------------------------------------------------------------------------
+
+
+local xxxxxxx="https://simpleauth.cn/"
+--极简云官网
+--官方群:598018022
+--制作员:抹布
+
+
+local xxxxxxx_Kami="https://simpleauth.cn/api.php?api=kmlogon"
+--接口名称[卡密登录]
+
+local xxxxxxx_jieba="https://simpleauth.cn/api.php?api=kmunmachine"
+--接口名称[卡密解绑]
+
+local xxxxxxx_to_configure="https://simpleauth.cn/api.php?api=ini"
+--接口名称[应用配置]
+
+local xxxxxxx_Notice="https://simpleauth.cn/api.php?api=notice"
+--接口名称[应用公告]
+
+local xxxxxxx_RC4=true
+--是否 RC4 加密[false=关 true=开] 
+--选择 RC4加密-2 否则会乱码 
+--打开 签名放DATA里:打开
+
+local xxxxxxx_RC4_key="6TCbr77tzrlV6Dt4"
+--是否 RC4 加密[key 密钥]
+
+local xxxxxxx_APPID="10499"
+--APPID
+
+local xxxxxxx_APPKEY="zGkwxkggoSrBVRz6"
+--APPKEY
+
+local xxxbanb="1.0"
+--1.0
+
+local xxxQQ=""
+--作者QQ
+
+
+
+gg.EXT_FILES_DIR="/storage/emulated/0/Download/"
+--保存卡密路径
+
+
+
+
+ab02180675f469187988d252d8ccb67bd1=function ()
+---[=[脚本可以复制到下面]=]-------------------------------------------------------------------------------------------------------------------
+
+
+
+function PS() end
+function setvalue(address,flags,value) PS('修改地址数值(地址,数值类型,要修改的值)') local tt={} tt[1]={} tt[1].address=address tt[1].flags=flags tt[1].value=value gg.setValues(tt) end
+
+function readAdd(add)
+t=gg.getValues({[1]={address=add,flags=4}})
+add=string.format("%X",t[1].value)
+if (#add)==16 then add=add:sub(9,16) end
+if (#add)==1 then add=add.."0000000" else
+add=string.format("%d","0x"..add)
+end
+return add 
+end
+
+function getAdd(so,offset,off1)
+add=gg.getRangesList(so)[1].start
+add=readAdd(add+offset)
+return add
+end
+
+function addListltems(address,flags,value,freeze,toast)
+t={}
+t[1]={}
+t[1].address=address
+t[1].flags=flags
+t[1].value=value
+t[1].freeze=freeze
+gg.addListItems(t)
+gg.toast("▓"..toast.."▓")
+end
+
+function split(szFullString, szSeparator) local nFindStartIndex = 1 local nSplitIndex = 1 local nSplitArray = {} while true do local nFindLastIndex = string.find(szFullString, szSeparator, nFindStartIndex) if not nFindLastIndex then nSplitArray[nSplitIndex] = string.sub(szFullString, nFindStartIndex, string.len(szFullString)) break end nSplitArray[nSplitIndex] = string.sub(szFullString, nFindStartIndex, nFindLastIndex - 1) nFindStartIndex = nFindLastIndex + string.len(szSeparator) nSplitIndex = nSplitIndex + 1 end return nSplitArray end function xgxc(szpy, qmxg) for x = 1, #(qmxg) do xgpy = szpy + qmxg[x]["offset"] xglx = qmxg[x]["type"] xgsz = qmxg[x]["value"] xgdj = qmxg[x]["freeze"] if xgdj == nil or xgdj == "" then gg.setValues({[1] = {address = xgpy, flags = xglx, value = xgsz}}) else gg.addListItems({[1] = {address = xgpy, flags = xglx, freeze = xgdj, value = xgsz}}) end xgsl = xgsl + 1 xgjg = true end end function xqmnb(qmnb) gg.clearResults() gg.setRanges(qmnb[1]["memory"]) gg.searchNumber(qmnb[3]["value"], qmnb[3]["type"]) if gg.getResultCount() == 0 then gg.toast(qmnb[2]["name"] .. "开启失败") else gg.refineNumber(qmnb[3]["value"], qmnb[3]["type"]) gg.refineNumber(qmnb[3]["value"], qmnb[3]["type"]) gg.refineNumber(qmnb[3]["value"], qmnb[3]["type"]) if gg.getResultCount() == 0 then gg.toast(qmnb[2]["name"] .. "开启失败") else sl = gg.getResults(999999) sz = gg.getResultCount() xgsl = 0 if sz > 999999 then sz = 999999 end for i = 1, sz do pdsz = true for v = 4, #(qmnb) do if pdsz == true then pysz = {} pysz[1] = {} pysz[1].address = sl[i].address + qmnb[v]["offset"] pysz[1].flags = qmnb[v]["type"] szpy = gg.getValues(pysz) pdpd = qmnb[v]["lv"] .. ";" .. szpy[1].value szpd = split(pdpd, ";") tzszpd = szpd[1] pyszpd = szpd[2] if tzszpd == pyszpd then pdjg = true pdsz = true else pdjg = false pdsz = false end end end if pdjg == true then szpy = sl[i].address xgxc(szpy, qmxg) end end if xgjg == true then gg.toast(qmnb[2]["name"] .. "开启成功,共修改" .. xgsl .. "条数据") else gg.toast(qmnb[2]["name"] .. "开启失败") end end end end
+
+function SearchWrite(Search, Write, Type) gg.clearResults() gg.setVisible(false) gg.searchNumber(Search[1][1], Type) local count = gg.getResultCount() local result = gg.getResults(count) gg.clearResults() local data = {} local base = Search[1][2] if (count > 0) then for i, v in ipairs(result) do v.isUseful = true end for k=2, #Search do local tmp = {} local offset = Search[k][2] - base local num = Search[k][1] for i, v in ipairs(result) do tmp[#tmp+1] = {} tmp[#tmp].address = v.address + offset tmp[#tmp].flags = v.flags end tmp = gg.getValues(tmp) for i, v in ipairs(tmp) do if ( tostring(v.value) ~= tostring(num) ) then result[i].isUseful = false end end end for i, v in ipairs(result) do if (v.isUseful) then data[#data+1] = v.address end end if (#data > 0) then gg.toast("搜索到"..#data.."条数据") local t = {} local base = Search[1][2] for i=1, #data do for k, w in ipairs(Write) do offset = w[2] - base t[#t+1] = {} t[#t].address = data[i] + offset t[#t].flags = Type t[#t].value = w[1] if (w[3] == true) then local item = {} item[#item+1] = t[#t] item[#item].freeze = true gg.addListItems(item) end end end gg.setValues(t) gg.toast("已修改"..#t.."条数据") gg.addListItems(t) else gg.toast("not found", false) return false end else gg.toast("Not Found") return false end end
+--↑配置文件↑
+
+function Main()
+  SN = gg.multiChoice({
+  "防封",
+  "热透",
+  "范围",
+  "退出"
+ }, nil, "COD-大菠萝")
+  if SN == nil then
+  else
+  if SN[1] == true then
+   a()
+  end
+  if SN[2] == true then
+   b()
+  end
+  if SN[3] == true then
+   c()
+  end
+  if SN[4] == true then
+   d()
+  end
+  if SN[5] == true then
+   Exit()
+  end
+end
+  XGCK = -1
+end
+
+function a()
+gg.getRangesList("libtersafe.so")
+gg.getValues({ -- table(56d0457)
+	[1] = { -- table(9078b44)
+		['address'] = 0xcb8fbff0,
+		['flags'] = 4, -- gg.TYPE_DWORD
+	},
+})
+gg.clearResults()
+gg.setRanges(gg.REGION_C_ALLOC)
+gg.searchNumber("70658~590336;67109377;67109633;131330", gg.TYPE_DWORD, false, gg.SIGN_EQUAL, 0, -1)
+gg.searchNumber("70658~590336", gg.TYPE_DWORD, false, gg.SIGN_EQUAL, 0, -1)
+gg.refineNumber("131330", gg.TYPE_DWORD, false, gg.SIGN_INEQUAL, 0, -1)
+gg.refineNumber("131331", gg.TYPE_DWORD, false, gg.SIGN_INEQUAL, 0, -1)
+gg.refineNumber("134914", gg.TYPE_DWORD, false, gg.SIGN_INEQUAL, 0, -1)
+gg.refineNumber("133634", gg.TYPE_DWORD, false, gg.SIGN_INEQUAL, 0, -1)
+gg.refineNumber("134658", gg.TYPE_DWORD, false, gg.SIGN_INEQUAL, 0, -1)
+gg.refineNumber("135682", gg.TYPE_DWORD, false, gg.SIGN_INEQUAL, 0, -1)
+gg.refineNumber("144387", gg.TYPE_DWORD, false, gg.SIGN_INEQUAL, 0, -1)
+gg.refineNumber("133378", gg.TYPE_DWORD, false, gg.SIGN_INEQUAL, 0, -1)
+gg.getResults(99999)
+gg.editAll("67109633", gg.TYPE_DWORD)
+gg.toast("10%")
+gg.clearResults()
+gg.setRanges(gg.REGION_C_ALLOC)
+gg.searchNumber("135682;144387", gg.TYPE_DWORD, false, gg.SIGN_EQUAL, 0, -1)
+gg.searchNumber("135682", gg.TYPE_DWORD, false, gg.SIGN_EQUAL, 0, -1)
+gg.getResults(99999)
+gg.editAll("67109633", gg.TYPE_DWORD)
+gg.toast("40%")
+gg.clearResults()
+gg.setRanges(gg.REGION_C_ALLOC)
+gg.searchNumber("196864", gg.TYPE_DWORD, false, gg.SIGN_EQUAL, 0, -1)
+gg.getResults(99999)
+gg.editAll("67109633", gg.TYPE_DWORD)
+gg.toast("60%")
+gg.clearResults()
+gg.setRanges(gg.REGION_C_ALLOC)
+gg.searchNumber("134658;131586", gg.TYPE_DWORD, false, gg.SIGN_EQUAL, 0, -1)
+gg.searchNumber("134658", gg.TYPE_DWORD, false, gg.SIGN_EQUAL, 0, -1)
+gg.getResults(99999)
+gg.editAll("67109633", gg.TYPE_DWORD)
+gg.toast("70%")
+gg.clearResults()
+gg.setRanges(gg.REGION_C_ALLOC)
+gg.searchNumber("133634;131330", gg.TYPE_DWORD, false, gg.SIGN_EQUAL, 0, -1)
+gg.getResults(99999)
+gg.editAll("67109633", gg.TYPE_DWORD)
+gg.toast("80%")
+gg.clearResults()
+gg.setRanges(gg.REGION_C_ALLOC)
+gg.searchNumber("134914;131330", gg.TYPE_DWORD, false, gg.SIGN_EQUAL, 0, -1)
+gg.getResults(99999)
+gg.editAll("67109633", gg.TYPE_DWORD)
+gg.toast("90%")
+gg.clearResults()
+gg.setRanges(gg.REGION_C_ALLOC)
+gg.searchNumber("133378", gg.TYPE_DWORD, false, gg.SIGN_EQUAL, 0, -1)
+gg.getResults(99999)
+gg.editAll("67109633", gg.TYPE_DWORD)
+gg.toast("99.999%")
+gg.clearResults()
+gg.setRanges(gg.REGION_C_ALLOC)
+gg.searchNumber("144387", gg.TYPE_DWORD, false, gg.SIGN_EQUAL, 0, -1)
+gg.getResults(99999)
+gg.editAll("67109633", gg.TYPE_DWORD)
+gg.toast("100%")
+gg.toast("大厅防封开启成功！耗时55.301s")
+end
+
+
+
+
+function b()
+gg.clearResults()
+so=gg.getRangesList('libil2cpp.so')[1].start
+py=0x3201A90
+setvalue(so+py,4,0)
+gg.toast("热透开启成功")
+end
+
+
+
+function c()
+gg.clearResults()
+so=gg.getRangesList('libil2cpp.so')[1].start
+py=0x2978024
+setvalue(so+py,4,0)
+
+so=gg.getRangesList('libil2cpp.so')[1].start
+py=0x2978028
+setvalue(so+py,4,0)
+
+so=gg.getRangesList('libil2cpp.so')[1].start
+py=0x145F0A68
+setvalue(so+py,4,15)
+gg.toast("范围开启成功")
+end
+
+
+
+function Exit()
+print("COD")
+os.exit()
+end
+cs = "NB"
+
+
+
+while true do
+  if gg.isVisible(true) then
+    XGCK = 1
+    gg.setVisible(false)
+  end
+  gg.clearResults()
+  if XGCK == 1 then
+    Main()
+  end
+end
+
+
+
+
+
+
+---[=[上面可以复制上你的脚本]=]------------------------------------------------------------------------------------------------------------------- end-- ab02180675f469187988d252d8ccb67bd1
+end
+
+
+
+---[=[   ]=]-------------------------------------------------------------------------------------------------------------------
+
+---[=[   ]=]-------------------------------------------------------------------------------------------------------------------
+
+---[=[   ]=]-------------------------------------------------------------------------------------------------------------------
+
+---[=[   ]=]-------------------------------------------------------------------------------------------------------------------
+
+---[=[   ]=]-------------------------------------------------------------------------------------------------------------------
+
+uio=gg.makeRequest(xxxxxxx).content
+--检查是否 用户被拉黑
+if uio==nil then
+gg.alert("当前请求状态异常，请检查网络....","结束")--对话框
+os.exit()
+end
+
+if uio~="欢迎使用！" then
+buy=uio:match('window.location.href ="(.-)"; </script>')
+POST(xxxxxxx..buy,"")
+gg.toast("验证成功...")--提示
+gg.sleep(400)--延迟
+end
+
+
+
+
+function  yanzhen(a) 
+if a =="999" then 
+gg.alert('本地文件读取错误！1\n请给与本地文件权限 [读取文件错误]')    
+elseif a =="998" then 
+gg.alert('你的时间似乎有问题！2\n请不要修改本地时间\n[请换个更好的网络]')    
+elseif a =="997" 
+then gg.alert('你的时间似乎有问题！3\n请不要修改本地时间\n[请换个更好的网络]')    
+elseif a =="996" then 
+gg.alert('你的网络似乎有问题！4\n请不要拦截数据 [SSL签名错误]')   
+end 
+end
+
+---[=[   ]=]-------------------------------------------------------------------------------------------------------------------
+
+Notice=POST(xxxxxxx_Notice.."&app=".. xxxxxxx_APPID,"")
+
+if  xxxxxxx_RC4 == true then 
+Notice=RC4(Notice,xxxxxxx_RC4_key,false) 
+end
+
+Notice=Notice:match('"app_gg":"(.-)"},')--获取公告
+if Notice~="" then
+gg.alert(Notice,"确定")--对话框
+end
+
+---[=[上面是公告]=]-------------------------------------------------------------------------------------------------------------------
+
+function uuuuuuuuuuuuu()
+rq=os.date("\n%Y".."年".."%m".."月".."%d".."日".." ".."%H".."时".."%M".."分".."%S".."秒")
+local a={}
+fien={io.open(gg.EXT_FILES_DIR.."/km","r"),io.open(gg.EXT_FILES_DIR.."/miux","r")}
+
+if fien[1]==nil then
+io.open(gg.EXT_FILES_DIR.."/km","w"):write("")--写
+a[1]=io.open(gg.EXT_FILES_DIR.."/km","r"):read("*a")--读
+else
+a[1]=io.open(gg.EXT_FILES_DIR.."/km","r"):read("*a")--读
+end--fien[1]--卡密
+
+if fien[2]==nil then
+io.open(gg.EXT_FILES_DIR.."/miux","w"):write(md5(rq))--写
+a[2]=io.open(gg.EXT_FILES_DIR.."/miux","r"):read("*a")--读
+else
+a[2]=io.open(gg.EXT_FILES_DIR.."/miux","r"):read("*a")--读
+end--fien[2]--机器码
+
+fien2=io.open(gg.EXT_FILES_DIR.."/miux","r"):read("*a")--读
+if fien2=="" then
+io.open(gg.EXT_FILES_DIR.."/miux","w"):write(md5(rq))--写
+fien2=io.open(gg.EXT_FILES_DIR.."/miux","r"):read("*a")--读
+a[2]=fien2
+end
+
+---[=[   ]=]-------------------------------------------------------------------------------------------------------------------
+
+gongxing=POST(  xxxxxxx_to_configure.."&app=".. xxxxxxx_APPID,"")
+
+if  xxxxxxx_RC4 == true then 
+gongxing=RC4(gongxing,xxxxxxx_RC4_key,false) 
+end
+
+xxxxbanben=gongxing:match('"version":"(.-)",')--获取版本号
+xxxxgxnr=gongxing:match('app_update_show":"(.-)",')--更新内容
+xxxxlianjie=gongxing:match('app_update_url":"(.-)","app_update_must')--更新链接
+
+if xxxxbanben==nil then
+gg.alert("请检查脚本 \n\n对接链接 或者是 加密 是否开启 \n\n现在出现错误无法使用!\n\n请联系作者:\n"..xxxQQ)--提示
+os.exit() 
+end
+
+if xxxxbanben==xxxbanb then
+gg.toast("最新版本")--提示 
+else
+
+xxxxxxx_Kami=""
+--接口名称[卡密登录]
+xxxxxxx_jieba=""
+--接口名称[卡密解绑]
+xxxxxxx_to_configure=""
+--接口名称[应用配置]
+
+bhh=gg.alert("发现新版本，请更新内容 ","开始下载","浏览器更新")--对话框
+
+if bhh == 1 then
+xxxxlianjie=gg.makeRequest(xxxxlianjie).content
+io.open("/storage/emulated/0/最新版本.lua","w+"):write(xxxxlianjie)--写
+gg.setVisible(true)
+print("---[=[ 下载成功]=]---------------\n\n[新版本]:\n"..xxxxbanben.."\n\n[更新内容]:\n"..xxxxgxnr.."\n\n[新脚本路径]:\n/storage/emulated/0/最新版本.lua\n")--打印
+ elseif bhh == 2 then
+gg.setVisible(true)
+print("\n[新版本]:\n"..xxxxbanben.."\n\n[更新内容]:\n"..xxxxgxnr.."\n\n[更新链接]:\n"..xxxxlianjie)--打印 end
+os.exit() 
+end
+
+end
+
+
+
+---[=[   ]=]-------------------------------------------------------------------------------------------------------------------
+---[=[   ]=]-------------------------------------------------------------------------------------------------------------------
+---[=[   ]=]-------------------------------------------------------------------------------------------------------------------
+---[=[   ]=]-------------------------------------------------------------------------------------------------------------------
+
+function automatic()
+
+abc=gg.prompt({
+"🌸🌸🌸🌸🌸🌸🌸🌸🌸🌸\n—————————\n运行日期: "..rq.."\n—————————\n请输入卡密:",
+'\n—————————\n换设备，请自己先解绑设备\n否则将无法使用当前卡密\n—————————\n1 - 是登入\n2 - 是解绑设备 [1;2] ',
+},{
+a[1],
+"1",
+},{
+'text',--文字
+'number',
+
+})--文本功能
+
+if abc==nil then
+gg.setVisible(false)--关 
+
+elseif abc[2]== "1" then
+--单卡登入
+key=md5("kami="..abc[1].."&markcode="..a[2].."&t="..os.time().."&".. xxxxxxx_APPKEY)
+Random=md5(RC4(os.time().."极简云",xxxxxxx_RC4_key,true)..xxxxxxx_APPKEY..a[2])--随机值
+bops="kami="..abc[1].."&markcode="..a[2].."&t="..os.time().."&sign="..key
+
+if  xxxxxxx_RC4 == true then
+bops="data="..RC4(bops,xxxxxxx_RC4_key,true)
+end-- xxxxxxx_RC4
+
+HUT=POST(xxxxxxx_Kami.."&app=".. xxxxxxx_APPID,bops.."&value="..Random)
+
+if  xxxxxxx_RC4 == true then
+HUT=RC4(HUT,xxxxxxx_RC4_key,false) 
+end-- xxxxxxx_RC4
+
+
+
+qued=HUT:match('code":(.-),')
+vip=HUT:match('vip":"(.-)"},')
+yanzen=HUT:match('check":"(.-)"')
+tinme=HUT:match('time":(.-),')
+fanhui=HUT:match('msg":"(.-)",')
+
+
+if qued~="200" then
+gg.alert(fanhui)--返回错误
+else
+
+if (tinme-os.time())>10 then
+yanzhen(998)
+else--时间10小于就跳转
+
+if (tinme-os.time())<-10 then
+yanzhen(997)
+else--时间-10大于就跳转
+
+if yanzen~=md5(tinme..xxxxxxx_APPKEY..Random) then
+yanzhen(996)--ssl错误
+else
+
+vip=os.date("%Y".."年".."%m".."月".."%d".."日".."\r".."%H".."时".."%M".."分".."%S".."秒\n",vip)
+gg.alert("\n登入成功:\n\n[到期时间]\n"..vip)--提示
+io.open(gg.EXT_FILES_DIR.."/km","w"):write(abc[1])--写
+ab02180675f469187988d252d8ccb67bd1()
+
+end
+end
+end
+end
+
+elseif abc[2]== "2" then---[=[   ]=]-------------------------------------------------------------------------------------------------------------------
+--换绑
+key=md5("kami="..abc[1].."&markcode="..a[2].."&t="..os.time().."&".. xxxxxxx_APPKEY)
+bops="kami="..abc[1].."&markcode="..a[2].."&t="..os.time().."&sign="..key
+
+if  xxxxxxx_RC4 == true then
+bops= "data="..RC4(bops,xxxxxxx_RC4_key,true) 
+end
+
+HUT=POST(  xxxxxxx_jieba.."&app=".. xxxxxxx_APPID,bops)
+
+if  xxxxxxx_RC4 == true then
+HUT=RC4(HUT,xxxxxxx_RC4_key,false) 
+end-- xxxxxxx_Base64
+
+qued=HUT:match('code":(.-),')
+fanhui=HUT:match('msg":"(.-)",')
+yanzen=HUT:match('check":"(.-)"')
+tinme=HUT:match('time":(.-),')
+gg.toast(fanhui)
+
+end
+
+end
+
+
+
+---[=[   ]=]-------------------------------------------------------------------------------------------------------------------
+
+
+
+if a[1]=="" then
+automatic()
+else
+
+key=md5("kami="..a[1].."&markcode="..a[2].."&t="..os.time().."&".. xxxxxxx_APPKEY)
+Random=md5(RC4(os.time().."极简云",xxxxxxx_RC4_key,true)..xxxxxxx_APPKEY..a[2])--随机值ifreturnendendendendendendend
+bops="kami="..a[1].."&markcode="..a[2].."&t="..os.time().."&sign="..key
+
+if  xxxxxxx_RC4 == true then
+bops="data="..RC4(bops,xxxxxxx_RC4_key,true)
+end-- xxxxxxx_RC4
+
+HUT=POST(xxxxxxx_Kami.."&app=".. xxxxxxx_APPID,bops.."&value="..Random)
+
+if  xxxxxxx_RC4 == true then
+HUT=RC4(HUT,xxxxxxx_RC4_key,false) 
+end-- xxxxxxx_RC4
+
+
+
+qued=HUT:match('code":(.-),')
+vip=HUT:match('vip":"(.-)"},')
+yanzen=HUT:match('check":"(.-)"')
+tinme=HUT:match('time":(.-),')
+fanhui=HUT:match('msg":"(.-)",')
+
+
+if qued~="200" then
+gg.alert(fanhui)--返回错误
+automatic()
+else
+
+if (tinme-os.time())>10 then
+gg.alert("请检查时间:\n"..os.date("%Y".."年".."%m".."月".."%d".."日".."\r".."%H".."时".."%M".."分".."%S".."秒\n",os.time))
+automatic()
+else--时间10小于就跳转
+
+if (tinme-os.time())<-10 then
+gg.alert("请检查时间:\n"..os.date("%Y".."年".."%m".."月".."%d".."日".."\r".."%H".."时".."%M".."分".."%S".."秒\n",os.time))
+automatic()
+else--时间-10大于就跳转
+
+if yanzen~=md5(tinme..xxxxxxx_APPKEY..Random) then
+yanzhen(996)--ssl错误
+automatic()
+else
+
+vip=os.date("%Y".."年".."%m".."月".."%d".."日".."\r".."%H".."时".."%M".."分".."%S".."秒\n",vip)
+gg.alert("\n登入成功:\n\n[到期时间]\n"..vip)--提示
+io.open(gg.EXT_FILES_DIR.."/km","w"):write(a[1])--写
+ab02180675f469187988d252d8ccb67bd1()
+
+end
+end
+end
+end
+
+end
+
+
+
+
+
+
+
+end
+
+while true do
+  if gg.isVisible(true) then
+    gg.setVisible(false)
+    uuuuuuuuuuuuu()
+  end
+end
